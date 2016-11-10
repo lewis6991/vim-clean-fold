@@ -5,9 +5,10 @@ endif
 
 set foldtext=vimcleanfold#FoldText()
 
+autocmd! CursorMoved * :set foldtext=vimcleanfold#FoldText()
+
 function! vimcleanfold#FoldText()
-    let l:line = getline(v:foldstart)
-    let l:line = s:MangleLine(l:line)
+    let l:line = s:MangleLine(getline(v:foldstart))
 
     let l:fold_size  = v:foldend - v:foldstart + 1
     let l:fold_level = &shiftwidth * v:foldlevel
@@ -83,16 +84,15 @@ function! s:GetInfoColumnsWidth()
 endfunction
 
 function! s:GetNumberWidth()
-    let l:maxNumber = 0
-
     if &l:number
         let l:maxNumber = line('$')
     elseif exists('+relativenumber') && &l:relativenumber
         let l:maxNumber = winheight(0)
+    else
+        return 0
     endif
 
-    let l:actualNumberWidth = strlen(string(l:maxNumber)) + 1
-
-    return l:actualNumberWidth > &l:numberwidth ?
-        \ l:actualNumberWidth : &l:numberwidth
+    " +1 to account for padding
+    let l:actualnumberwidth = strlen(string(l:maxNumber)) + 1
+    return max([l:actualnumberwidth, &l:numberwidth])
 endfunction
