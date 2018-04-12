@@ -5,13 +5,11 @@ endif
 
 set foldtext=vimcleanfold#FoldText()
 
-autocmd! CursorMoved * :set foldtext=vimcleanfold#FoldText()
-
 function! vimcleanfold#FoldText()
     let l:line = s:MangleLine(getline(v:foldstart))
 
-    let l:fold_size  = v:foldend - v:foldstart + 1
-    let l:fold_level = &shiftwidth * v:foldlevel
+    let l:fold_size = v:foldend - v:foldstart + 1
+    let l:fold_level_padding = &shiftwidth * (v:foldlevel - 1)
 
     if getcurpos()[1] == v:foldstart
         let l:extra = '∙'
@@ -24,11 +22,11 @@ function! vimcleanfold#FoldText()
         \ s:GetInfoColumnsWidth() -
         \ len(l:line) -
         \ len(l:fold_size) -
-        \ l:fold_level -
+        \ l:fold_level_padding -
         \ strchars(l:extra)
 
     return
-        \ repeat(' ', l:fold_level).
+        \ repeat(' ', l:fold_level_padding).
         \ l:line.
         \ repeat(' ', l:padding).
         \ l:fold_size.
@@ -55,6 +53,11 @@ function! s:MangleLine(line)
 
     "Remove leading whitespace
     let l:line = substitute(l:line, '^\s*' , '', 'g')
+
+    if &filetype == 'scala'
+        " Remove any text after the return type of a def
+        let l:line = substitute(l:line, '\({\|=\).\{-}$' , '', 'g')
+    endif
 
     return l:line
 endfunction
